@@ -171,6 +171,18 @@ body {
     background-color: #0077ed;
 }
 
+.comments-section {
+    padding: 60px 22px;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+.comments-content {
+    width: 100%;
+    max-width: 800px;
+}
+
 @media (max-width: 768px) {
     .nav-content {
         display: none; /* Simple mobile nav hiding for this clone */
