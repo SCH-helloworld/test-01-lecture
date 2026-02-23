@@ -38,14 +38,17 @@
             </div>
         </section>
 
-        <!-- AI Scanner Section -->
+        <!-- AI Photo Identifier Section (File Upload) -->
         <section class="ai-section">
             <div class="ai-content">
                 <h1>Phone Identifier</h1>
-                <p>iPhone or Galaxy? Our AI knows.</p>
+                <p>Upload a photo to see if it's an iPhone or Galaxy.</p>
                 <div class="scanner-container">
-                    <button type="button" class="btn-submit" onclick="initAI()">Start AI Scanner</button>
-                    <div id="webcam-container"></div>
+                    <input type="file" id="image-selector" accept="image/*" style="display: none;" onchange="predictFromFile()">
+                    <button type="button" class="btn-submit" onclick="document.getElementById('image-selector').click()">Choose an Image</button>
+                    <div id="image-preview-container">
+                        <img id="selected-image" src="#" alt="Selected Image" style="display:none; max-width: 300px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: 20px 0;">
+                    </div>
                     <div id="label-container"></div>
                 </div>
             </div>
@@ -108,43 +111,48 @@
     <script src="main.js"></script>
     <script type="text/javascript">
         const URL = "https://teachablemachine.withgoogle.com/models/kcfVF1ZUF/";
-        let model, webcam, labelContainer, maxPredictions;
+        let model, labelContainer, maxPredictions;
 
-        async function initAI() {
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
-
-            const flip = true;
-            webcam = new tmImage.Webcam(300, 300, flip);
-            await webcam.setup();
-            await webcam.play();
-            window.requestAnimationFrame(loopAI);
-
-            document.getElementById("webcam-container").innerHTML = "";
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            labelContainer = document.getElementById("label-container");
-            labelContainer.innerHTML = "";
-            for (let i = 0; i < maxPredictions; i++) {
-                labelContainer.appendChild(document.createElement("div"));
+        async function loadModel() {
+            if (!model) {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
             }
         }
 
-        async function loopAI() {
-            webcam.update();
-            await predictAI();
-            window.requestAnimationFrame(loopAI);
-        }
-
-        async function predictAI() {
-            const prediction = await model.predict(webcam.canvas);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction =
-                    prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-                labelContainer.childNodes[i].style.fontWeight = prediction[i].probability > 0.5 ? "600" : "400";
-                labelContainer.childNodes[i].style.color = prediction[i].probability > 0.5 ? "#0071e3" : "#86868b";
+        async function predictFromFile() {
+            await loadModel();
+            
+            const fileInput = document.getElementById('image-selector');
+            const imageElement = document.getElementById('selected-image');
+            labelContainer = document.getElementById("label-container");
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    imageElement.src = e.target.result;
+                    imageElement.style.display = 'block';
+                    
+                    // Wait for image to load before predicting
+                    imageElement.onload = async function() {
+                        const prediction = await model.predict(imageElement);
+                        labelContainer.innerHTML = "";
+                        for (let i = 0; i < maxPredictions; i++) {
+                            const div = document.createElement("div");
+                            const classPrediction =
+                                prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
+                            div.innerHTML = classPrediction;
+                            div.style.fontWeight = prediction[i].probability > 0.5 ? "600" : "400";
+                            div.style.color = prediction[i].probability > 0.5 ? "#0071e3" : "#86868b";
+                            labelContainer.appendChild(div);
+                        }
+                    };
+                };
+                
+                reader.readAsDataURL(fileInput.files[0]);
             }
         }
     </script>
