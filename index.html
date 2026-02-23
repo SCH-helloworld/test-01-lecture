@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apple (Clone)</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -32,6 +34,19 @@
                 <div class="cta-links">
                     <a href="#" class="btn-link">Learn more ></a>
                     <a href="#" class="btn-link">Buy ></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Scanner Section -->
+        <section class="ai-section">
+            <div class="ai-content">
+                <h1>Phone Identifier</h1>
+                <p>iPhone or Galaxy? Our AI knows.</p>
+                <div class="scanner-container">
+                    <button type="button" class="btn-submit" onclick="initAI()">Start AI Scanner</button>
+                    <div id="webcam-container"></div>
+                    <div id="label-container"></div>
                 </div>
             </div>
         </section>
@@ -78,16 +93,7 @@
             <div class="comments-content">
                 <div id="disqus_thread"></div>
                 <script>
-                    /**
-                    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-                    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
-                    /*
-                    var disqus_config = function () {
-                    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-                    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-                    };
-                    */
-                    (function() { // DON'T EDIT BELOW THIS LINE
+                    (function() { 
                     var d = document, s = d.createElement('script');
                     s.src = 'https://test-01-4.disqus.com/embed.js';
                     s.setAttribute('data-timestamp', +new Date());
@@ -100,5 +106,47 @@
     </main>
 
     <script src="main.js"></script>
+    <script type="text/javascript">
+        const URL = "https://teachablemachine.withgoogle.com/models/kcfVF1ZUF/";
+        let model, webcam, labelContainer, maxPredictions;
+
+        async function initAI() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            const flip = true;
+            webcam = new tmImage.Webcam(300, 300, flip);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loopAI);
+
+            document.getElementById("webcam-container").innerHTML = "";
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "";
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div"));
+            }
+        }
+
+        async function loopAI() {
+            webcam.update();
+            await predictAI();
+            window.requestAnimationFrame(loopAI);
+        }
+
+        async function predictAI() {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(0) + "%";
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+                labelContainer.childNodes[i].style.fontWeight = prediction[i].probability > 0.5 ? "600" : "400";
+                labelContainer.childNodes[i].style.color = prediction[i].probability > 0.5 ? "#0071e3" : "#86868b";
+            }
+        }
+    </script>
 </body>
 </html>
