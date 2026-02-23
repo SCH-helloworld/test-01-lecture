@@ -107,6 +107,70 @@ body {
     color: #1d1d1f;
 }
 
+.contact-section {
+    padding: 100px 22px;
+    background-color: #f5f5f7;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.contact-content {
+    width: 100%;
+    max-width: 600px;
+}
+
+.contact-content h1 {
+    font-size: 48px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.contact-content p {
+    font-size: 21px;
+    color: #86868b;
+    margin-bottom: 40px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group input, .input-group textarea {
+    width: 100%;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #d2d2d7;
+    background: #fff;
+    font-size: 17px;
+    outline: none;
+}
+
+.input-group textarea {
+    height: 150px;
+    resize: none;
+}
+
+.btn-submit {
+    background-color: #0071e3;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 17px;
+    font-weight: 400;
+    border-radius: 980px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: fit-content;
+    margin: 20px auto 0;
+}
+
+.btn-submit:hover {
+    background-color: #0077ed;
+}
+
 @media (max-width: 768px) {
     .nav-content {
         display: none; /* Simple mobile nav hiding for this clone */
